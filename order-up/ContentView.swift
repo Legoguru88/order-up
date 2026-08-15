@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var milo = 0
-    @State private var teh = 0
-    @State private var toast = 0
+    @State private var items: [MenuItem] = [
+        MenuItem(name: "🥤  Milo", price: 1.50, color: .orange, quantity: 0),
+        MenuItem(name: "🍵  Teh", price: 1.20, color: .brown, quantity: 0),
+        MenuItem(name: "🍞  Kaya Toast", price: 2.00, color: .yellow, quantity: 0),
+    ]
     @State private var flag = false
     @State private var placed = false
     @State private var finalised = false
@@ -18,11 +20,13 @@ struct ContentView: View {
     @State private var arr: [String] = []
 
     private var orderSummary: String {
-        var parts: [String] = []
-        if milo > 0 { parts.append("Milo x\(milo)") }
-        if teh > 0 { parts.append("Teh x\(teh)") }
-        if toast > 0 { parts.append("Kaya Toast x\(toast)") }
-        return parts.joined(separator: "\n")
+        items.filter { $0.quantity > 0 }
+            .map { "\($0.name) x\($0.quantity)" }
+            .joined(separator: "\n")
+    }
+
+    private var total: Double {
+        items.reduce(0) { $0 + $1.price * Double($1.quantity) }
     }
 
     var body: some View {
@@ -35,95 +39,11 @@ struct ContentView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
-            HStack {
-                Text("🥤  Milo")
-                    .font(.title2)
-                Text("$1.50")
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("\(milo)")
-                    .font(.title)
-                    .monospacedDigit()
-                Button {
-                    if milo > 0 {
-                        milo -= 1
-                    }
-                    tmp = 1
-                } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.largeTitle)
-                }
-                Button {
-                    milo += 1
-                    tmp = 1
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.largeTitle)
-                }
+            ForEach($items) { $item in
+                ItemRow(item: $item)
             }
-            .padding()
-            .background(Color.orange.opacity(0.18))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
 
-            HStack {
-                Text("🍵  Teh")
-                    .font(.title2)
-                Text("$1.20")
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("\(teh)")
-                    .font(.title)
-                    .monospacedDigit()
-                Button {
-                    if teh > 0 {
-                        teh -= 1
-                    }
-                } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.largeTitle)
-                }
-                Button {
-                    teh += 1
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.largeTitle)
-                }
-            }
-            .padding()
-            .background(Color.brown.opacity(0.18))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-
-            HStack {
-                Text("🍞  Kaya Toast")
-                    .font(.title2)
-                Text("$2.00")
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("\(toast)")
-                    .font(.title)
-                    .monospacedDigit()
-                Button {
-                    if toast > 0 {
-                        toast -= 1
-                    }
-                    arr.append("x")
-                } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.largeTitle)
-                }
-                Button {
-                    toast += 1
-                    arr.append("x")
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.largeTitle)
-                }
-            }
-            .padding()
-            .background(Color.yellow.opacity(0.18))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-
-            Text("Total  $\(Double(milo) * 1.5 + Double(teh) * 1.2 + Double(toast) * 2.0, specifier: "%.2f")")
+            Text("Total  $\(total, specifier: "%.2f")")
                 .font(.title)
                 .bold()
                 .padding(.top, 8)
@@ -156,9 +76,9 @@ struct ContentView: View {
                     Text(orderSummary)
                         .font(.title3)
                     Button("Go Back") {
-                        milo = 0
-                        teh = 0
-                        toast = 0
+                        for index in items.indices {
+                            items[index].quantity = 0
+                        }
                         placed = false
                         finalised = false
                     }
